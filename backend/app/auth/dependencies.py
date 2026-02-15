@@ -1,3 +1,4 @@
+from bson import ObjectId
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -26,12 +27,12 @@ async def get_current_user(
         )
 
     db = get_db()
-    user = await db.users.find_one({"_id": user_id})
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
 
-    user["id"] = user.pop("_id")
+    user["id"] = str(user.pop("_id"))
     return user

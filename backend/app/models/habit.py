@@ -32,6 +32,10 @@ class HabitUpdate(BaseModel):
     order: Optional[int] = None
     linked_tracker_id: Optional[str] = None
     tracker_threshold: Optional[float] = None
+    formation_count: Optional[int] = None
+    is_formed: Optional[bool] = None
+    current_streak: Optional[int] = None
+    best_streak: Optional[int] = None
 
 
 class Habit(BaseModel):
@@ -52,5 +56,9 @@ class Habit(BaseModel):
     order: int = 0
     linked_tracker_id: Optional[str] = None
     tracker_threshold: Optional[float] = None
+    formation_count: int = 0
+    is_formed: bool = False
+    current_streak: int = 0
+    best_streak: int = 0
     created_at: datetime
     updated_at: datetime

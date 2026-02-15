@@ -10,6 +10,7 @@ import { GoalSetupPage } from "@/pages/GoalSetupPage";
 import { GoalDetailPage } from "@/pages/GoalDetailPage";
 import { CoachingPage } from "@/pages/CoachingPage";
 import { ProgressPage } from "@/pages/ProgressPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 import { LoginPage } from "@/pages/LoginPage";
 
 const queryClient = new QueryClient({
@@ -37,6 +38,7 @@ function App() {
                     <Route path="/goals/:id" element={<GoalDetailPage />} />
                     <Route path="/goals/:id/coach" element={<CoachingPage />} />
                     <Route path="/progress" element={<ProgressPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
                   </Route>
                 </Route>
               </Routes>

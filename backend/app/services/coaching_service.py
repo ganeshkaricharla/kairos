@@ -10,6 +10,7 @@ from app.services import (
     daily_log_service,
     goal_service,
     ai_service,
+    tag_parser,
 )
 from app.models.habit import HabitCreate, HabitUpdate
 from app.models.tracker import TrackerCreate
@@ -110,6 +111,7 @@ async def start_coaching_session(
             title=goal["title"],
             description=goal["description"],
             target_date=goal.get("target_date"),
+            user_id=user_id,
         )
 
         session_doc = {
@@ -154,6 +156,7 @@ async def start_coaching_session(
             period_end=snapshot.period_end,
             habits_summary=habits_summary,
             tracker_summary=tracker_summary,
+            user_id=user_id,
         )
 
         session_doc = {
@@ -260,13 +263,27 @@ async def send_message(session_id: str, user_message: str) -> dict:
         pending_changes=pending_str,
         chat_history=chat_history,
         user_message=user_message,
+        user_id=session["user_id"],
     )
 
+    # Parse and execute tags from AI response
+    clean_message, executed_actions = await tag_parser.parse_and_execute_tags(
+        message=reply.message,
+        goal_id=session["goal_id"],
+        user_id=session["user_id"]
+    )
+
+    # Store clean message (with tags removed)
     session["messages"].append(
-        {"role": "assistant", "content": reply.message, "timestamp": now()}
+        {
+            "role": "assistant",
+            "content": clean_message,
+            "timestamp": now(),
+            "executed_actions": executed_actions  # Store metadata about tag executions
+        }
     )
 
-    # Add any new proposed changes
+    # Add any new proposed changes (for backward compatibility, though we're using tags-only)
     for change in reply.proposed_changes:
         session["proposed_changes"].append(
             {**change.model_dump(), "accepted": None}
