@@ -1,4 +1,5 @@
 from bson import ObjectId
+from datetime import datetime, timedelta
 
 from app.database import get_db
 from app.models.habit import HabitCreate, HabitUpdate
@@ -7,7 +8,13 @@ from app.utils.dates import now
 
 
 async def create_habit(data: HabitCreate, user_id: str) -> dict:
+    """Create a new habit. Habits always start tomorrow, not today."""
     db = get_db()
+
+    # Habits always start tomorrow at midnight UTC
+    tomorrow = datetime.utcnow() + timedelta(days=1)
+    tomorrow_start = tomorrow.replace(hour=0, minute=0, second=0, microsecond=0)
+
     doc = {
         "goal_id": data.goal_id,
         "user_id": user_id,
@@ -19,7 +26,7 @@ async def create_habit(data: HabitCreate, user_id: str) -> dict:
         "difficulty": data.difficulty,
         "reasoning": data.reasoning,
         "status": data.status,
-        "activated_at": now() if data.status == "active" else None,
+        "activated_at": tomorrow_start if data.status == "active" else None,
         "replaced_by": None,
         "replaces": None,
         "order": data.order,
@@ -55,6 +62,9 @@ async def update_habit(habit_id: str, data: HabitUpdate) -> dict | None:
         return await get_habit(habit_id)
     updates["updated_at"] = now()
     if "status" in updates and updates["status"] == "active":
-        updates["activated_at"] = now()
+        # Habits always start tomorrow at midnight UTC
+        tomorrow = datetime.utcnow() + timedelta(days=1)
+        tomorrow_start = tomorrow.replace(hour=0, minute=0, second=0, microsecond=0)
+        updates["activated_at"] = tomorrow_start
     await db.habits.update_one({"_id": ObjectId(habit_id)}, {"$set": updates})
     return await get_habit(habit_id)

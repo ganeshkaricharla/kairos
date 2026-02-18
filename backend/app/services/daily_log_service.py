@@ -1,4 +1,5 @@
 from bson import ObjectId
+from datetime import datetime
 
 from app.database import get_db
 from app.models.daily_log import TrackerLogInput
@@ -37,7 +38,24 @@ async def get_daily_logs(user_id: str, date: str) -> list[dict]:
 async def toggle_habit(
     user_id: str, goal_id: str, date: str, habit_id: str
 ) -> dict:
+    """Toggle habit completion. Habits can only be logged on or after their activated_at date."""
     db = get_db()
+
+    # Check if habit is activated for this date
+    habit = await db.habits.find_one({"_id": ObjectId(habit_id)})
+    if not habit:
+        raise ValueError("Habit not found")
+
+    # Check if the habit is activated for this date
+    if habit.get("activated_at"):
+        activated_date = habit["activated_at"].date()
+        log_date = datetime.strptime(date, "%Y-%m-%d").date()
+
+        if log_date < activated_date:
+            raise ValueError(
+                f"This habit starts on {activated_date.isoformat()}. You can't log it before that date."
+            )
+
     log = await db.daily_logs.find_one(
         {"user_id": user_id, "goal_id": goal_id, "date": date}
     )

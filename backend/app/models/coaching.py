@@ -10,13 +10,6 @@ class ChatMessage(BaseModel):
     timestamp: datetime
 
 
-class ProposedChange(BaseModel):
-    type: str  # add_habit, swap_habit, upgrade_intensity, downgrade_intensity, pause_habit, add_tracker
-    description: str
-    details: dict[str, Any] = {}
-    accepted: Optional[bool] = None
-
-
 class HabitPerformance(BaseModel):
     habit_id: str
     title: str
@@ -39,6 +32,14 @@ class PerformanceSnapshot(BaseModel):
     tracker_trends: list[TrackerTrend] = []
 
 
+class SessionSummary(BaseModel):
+    """Summary of a coaching session - like 'minutes of meeting'"""
+    key_points: list[str] = []  # Main discussion points
+    habits_added: list[str] = []  # Habits created/modified
+    next_check_in: Optional[str] = None  # When to reconnect (e.g., "in 7 days")
+    action_items: list[str] = []  # Things user should do
+
+
 class CoachingSession(BaseModel):
     id: str
     goal_id: str
@@ -47,6 +48,6 @@ class CoachingSession(BaseModel):
     status: str = "active"
     performance_snapshot: Optional[PerformanceSnapshot] = None
     messages: list[ChatMessage] = []
-    proposed_changes: list[ProposedChange] = []
+    summary: Optional[SessionSummary] = None  # Summary when session ends
     created_at: datetime
     resolved_at: Optional[datetime] = None

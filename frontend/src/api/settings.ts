@@ -21,6 +21,13 @@ export interface AITestResult {
   error: string | null;
 }
 
+export interface CoachingPersonality {
+  id: string;
+  name: string;
+  description: string;
+  tone: string;
+}
+
 export const settingsApi = {
   getAIConfig: () =>
     api.get<AIConfig>("/users/me/ai-config").then((r) => r.data),
@@ -33,4 +40,10 @@ export const settingsApi = {
 
   testAIConfig: (data: { provider: string; api_key: string; base_url?: string }) =>
     api.post<AITestResult>("/users/me/ai-config/test", data).then((r) => r.data),
+
+  getPersonalities: () =>
+    api.get<CoachingPersonality[]>("/users/personalities").then((r) => r.data),
+
+  updateCoachingStyle: (style: string) =>
+    api.patch("/users/me/coaching-style", { style }).then((r) => r.data),
 };

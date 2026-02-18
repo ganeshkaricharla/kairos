@@ -11,6 +11,13 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 10080  # 7 days
     encryption_key: str = ""  # For encrypting user API keys
 
+    # Coaching session lock settings
+    session_lock_enabled: bool = True  # Enable/disable session locking
+    session_lock_hours: int = 6  # Hours to lock after resolving a session
+
+    # Admin settings
+    admin_emails: str = ""  # Comma-separated list of admin emails
+
     model_config = {"env_file": ".env"}
 
 

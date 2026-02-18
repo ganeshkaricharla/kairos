@@ -67,7 +67,7 @@ export function GoalDetailPage() {
             <Link to={`/goals/${id}/coach`}>
               <Button size="sm" className="gap-1">
                 <MessageCircle className="w-4 h-4" />
-                Open Session
+                Chat with Priya
               </Button>
             </Link>
           ) : (
@@ -84,7 +84,7 @@ export function GoalDetailPage() {
               disabled={startCoaching.isPending}
             >
               <Plus className="w-4 h-4" />
-              Start Review
+              Talk to Priya
             </Button>
           )}
         </div>

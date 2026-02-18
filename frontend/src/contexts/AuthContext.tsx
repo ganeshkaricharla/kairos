@@ -6,6 +6,8 @@ interface User {
   email: string;
   name: string;
   picture?: string;
+  coaching_style?: string;
+  is_admin?: boolean;
 }
 
 interface AuthContextType {

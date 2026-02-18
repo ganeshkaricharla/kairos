@@ -41,59 +41,77 @@ async def parse_and_execute_tags(
     executed_actions = []
     clean_msg = message
 
-    # Parse and execute each tag type
-    tag_types = [
-        ("HABIT", _create_habit_from_tag),
-        ("TRACKER", _create_tracker_from_tag),
-        ("LOG", _log_tracker_from_tag),
-        ("MEMORY", _save_memory_from_tag),
-        ("DELETE_HABIT", _delete_habit_from_tag),
-        ("UPDATE_HABIT", _update_habit_from_tag),
-    ]
+    # Map of tag names to executor functions
+    tag_executors = {
+        "HABIT": _create_habit_from_tag,
+        "TRACKER": _create_tracker_from_tag,
+        "LOG": _log_tracker_from_tag,
+        "MEMORY": _save_memory_from_tag,
+        "DELETE_HABIT": _delete_habit_from_tag,
+        "UPDATE_HABIT": _update_habit_from_tag,
+    }
 
-    for tag_name, executor_func in tag_types:
-        pattern = rf'\[{tag_name}\](.*?)\[/{tag_name}\]'
-        matches = list(re.finditer(pattern, clean_msg, re.DOTALL))
+    # Track created resource IDs for placeholder replacement
+    last_tracker_id = None
 
-        for match in matches:
-            try:
-                # Parse JSON data
-                data = json.loads(match.group(1).strip())
+    # Find all tags in order of appearance
+    all_tag_pattern = r'\[(HABIT|TRACKER|LOG|MEMORY|DELETE_HABIT|UPDATE_HABIT)\](.*?)\[/\1\]'
+    matches = list(re.finditer(all_tag_pattern, clean_msg, re.DOTALL))
 
-                # Execute action
-                if tag_name in ("MEMORY",):
-                    # Memory doesn't need goal_id
-                    result = await executor_func(data, user_id)
-                else:
-                    result = await executor_func(data, goal_id, user_id)
+    for match in matches:
+        tag_name = match.group(1)
+        tag_content = match.group(2).strip()
+        executor_func = tag_executors.get(tag_name)
 
-                executed_actions.append({
-                    "type": tag_name,
-                    "data": data,
-                    "success": True,
-                    "result": result
-                })
+        if not executor_func:
+            continue
 
-                # Remove tag from message
-                clean_msg = clean_msg.replace(match.group(0), '')
+        try:
+            # Replace {{tracker_id}} placeholder with last created tracker ID
+            if last_tracker_id and "{{tracker_id}}" in tag_content:
+                tag_content = tag_content.replace("{{tracker_id}}", last_tracker_id)
 
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse {tag_name} tag JSON: {e}")
-                executed_actions.append({
-                    "type": tag_name,
-                    "data": match.group(1).strip(),
-                    "success": False,
-                    "error": f"Invalid JSON: {str(e)}"
-                })
+            # Parse JSON data
+            data = json.loads(tag_content)
 
-            except Exception as e:
-                logger.error(f"Failed to execute {tag_name} tag: {e}")
-                executed_actions.append({
-                    "type": tag_name,
-                    "data": match.group(1).strip(),
-                    "success": False,
-                    "error": str(e)
-                })
+            # Execute action
+            if tag_name in ("MEMORY",):
+                # Memory doesn't need goal_id
+                result = await executor_func(data, user_id)
+            else:
+                result = await executor_func(data, goal_id, user_id)
+
+            # Track tracker ID for placeholder replacement
+            if tag_name == "TRACKER" and result and result.get("id"):
+                last_tracker_id = result["id"]
+
+            executed_actions.append({
+                "type": tag_name,
+                "data": data,
+                "success": True,
+                "result": result
+            })
+
+            # Remove tag from message
+            clean_msg = clean_msg.replace(match.group(0), '')
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse {tag_name} tag JSON: {e}")
+            executed_actions.append({
+                "type": tag_name,
+                "data": tag_content,
+                "success": False,
+                "error": f"Invalid JSON: {str(e)}"
+            })
+
+        except Exception as e:
+            logger.error(f"Failed to execute {tag_name} tag: {e}")
+            executed_actions.append({
+                "type": tag_name,
+                "data": tag_content,
+                "success": False,
+                "error": str(e)
+            })
 
     # Clean up extra whitespace
     clean_msg = re.sub(r'\n{3,}', '\n\n', clean_msg).strip()

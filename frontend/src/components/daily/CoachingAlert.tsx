@@ -15,15 +15,15 @@ export function CoachingAlert({ goalId }: { goalId: string }) {
           <MessageCircle className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <p className="font-medium text-sm">Your coach wants to check in</p>
+          <p className="font-medium text-sm">Priya wants to check in with you</p>
           <p className="text-xs text-muted-foreground">
-            Review your progress and discuss next steps
+            Let's talk about your progress and next steps
           </p>
         </div>
       </div>
       <Link to={`/goals/${goalId}/coach`}>
         <Button size="sm" className="gap-1">
-          Open <ArrowRight className="w-3 h-3" />
+          Chat <ArrowRight className="w-3 h-3" />
         </Button>
       </Link>
     </div>

@@ -33,12 +33,16 @@ async def google_login(data: GoogleLoginRequest):
 
     db = get_db()
 
+    # Check if user is admin
+    admin_emails = [e.strip() for e in settings.admin_emails.split(",") if e.strip()]
+    is_admin = email in admin_emails
+
     # Upsert user
     user = await db.users.find_one({"google_id": google_id})
     if user:
         await db.users.update_one(
             {"_id": user["_id"]},
-            {"$set": {"name": name, "picture": picture, "updated_at": now()}},
+            {"$set": {"name": name, "picture": picture, "is_admin": is_admin, "updated_at": now()}},
         )
         user_id = str(user["_id"])
     else:
@@ -47,6 +51,7 @@ async def google_login(data: GoogleLoginRequest):
             "email": email,
             "name": name,
             "picture": picture,
+            "is_admin": is_admin,
             "created_at": now(),
             "updated_at": now(),
         }
@@ -63,5 +68,6 @@ async def google_login(data: GoogleLoginRequest):
             "email": email,
             "name": name,
             "picture": picture,
+            "is_admin": is_admin,
         },
     }

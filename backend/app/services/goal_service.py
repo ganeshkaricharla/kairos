@@ -2,6 +2,7 @@ from bson import ObjectId
 
 from app.database import get_db
 from app.models.goal import GoalCreate, GoalUpdate
+from app.models.goal_template import get_template_by_id
 from app.utils.object_id import doc_id
 from app.utils.dates import now
 
@@ -18,11 +19,30 @@ async def create_goal(data: GoalCreate, user_id: str) -> dict:
     existing = await get_active_goal(user_id)
     if existing:
         raise ValueError("An active goal already exists. Delete it before creating a new one.")
+
+    # Get goal template
+    template = get_template_by_id(data.template_id)
+    if not template:
+        raise ValueError(f"Invalid template_id: {data.template_id}")
+
+    # Determine direction based on initial vs target values
+    if data.initial_value is not None and data.target_value is not None:
+        direction = "decrease" if data.target_value < data.initial_value else "increase"
+    else:
+        direction = "increase"  # Default if values not provided
+
+    # Create goal with template data
     doc = {
         "user_id": user_id,
-        "title": data.title,
+        "template_id": template.id,
+        "title": template.name,
         "description": data.description,
+        "primary_metric_name": template.primary_metric_name,
+        "primary_metric_unit": template.primary_metric_unit,
+        "initial_value": data.initial_value,
+        "target_value": data.target_value,
         "target_date": data.target_date,
+        "direction": direction,  # Store direction on goal for easy access
         "status": "active",
         "ai_context": {
             "summary": "",
@@ -30,12 +50,45 @@ async def create_goal(data: GoalCreate, user_id: str) -> dict:
             "current_phase": "building_foundation",
             "next_review_date": None,
         },
+        "questionnaire_responses": data.questionnaire_responses,
         "created_at": now(),
         "updated_at": now(),
     }
     result = await db.goals.insert_one(doc)
     doc["_id"] = result.inserted_id
-    return doc_id(doc)
+    goal = doc_id(doc)
+
+    # Auto-create primary tracker
+    from app.services import tracker_service
+    from app.models.tracker import TrackerCreate
+
+    primary_tracker = TrackerCreate(
+        goal_id=goal["id"],
+        name=template.primary_metric_name,
+        description=f"Primary metric for {template.name}",
+        unit=template.primary_metric_unit,
+        type="main",
+        direction=direction,  # Use direction calculated above
+        is_primary=True
+    )
+    tracker = await tracker_service.create_tracker(primary_tracker, user_id)
+
+    # Log initial_value as first tracker data point if provided
+    if data.initial_value is not None:
+        from app.services import daily_log_service
+        from app.models.daily_log import TrackerLogInput
+        from datetime import date
+
+        today = date.today().isoformat()
+        await daily_log_service.log_tracker(
+            user_id=user_id,
+            goal_id=goal["id"],
+            date=today,
+            tracker_id=tracker["id"],
+            data=TrackerLogInput(value=data.initial_value)
+        )
+
+    return goal
 
 
 async def get_goal(goal_id: str) -> dict | None:

@@ -10,6 +10,7 @@ export interface Tracker {
   target_value: number | null;
   current_value: number | null;
   reasoning: string;
+  is_primary: boolean;
   created_at: string;
   updated_at: string;
 }

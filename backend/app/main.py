@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import connect_db, close_db
-from app.routers import auth, goals, habits, trackers, daily_logs, coaching, models, users
+from app.routers import auth, goals, goal_templates, habits, trackers, daily_logs, coaching, models, users, admin
 
 
 @asynccontextmanager
@@ -26,6 +26,8 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(admin.router)
+app.include_router(goal_templates.router)
 app.include_router(goals.router)
 app.include_router(habits.router)
 app.include_router(trackers.router)

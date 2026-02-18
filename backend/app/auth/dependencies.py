@@ -36,3 +36,15 @@ async def get_current_user(
 
     user["id"] = str(user.pop("_id"))
     return user
+
+
+async def get_current_admin(
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    """Dependency to check if current user is an admin."""
+    if not current_user.get("is_admin", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return current_user

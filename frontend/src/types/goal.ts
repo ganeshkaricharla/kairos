@@ -8,8 +8,13 @@ export interface AIContext {
 export interface Goal {
   id: string;
   user_id: string;
+  template_id: string;
   title: string;
   description: string;
+  primary_metric_name: string;
+  primary_metric_unit: string;
+  initial_value?: number;  // Starting value for primary metric
+  target_value?: number;   // Target value for primary metric
   target_date: string | null;
   status: string;
   ai_context: AIContext;
@@ -20,9 +25,12 @@ export interface Goal {
 }
 
 export interface GoalCreate {
-  title: string;
+  template_id: string;
   description: string;
+  initial_value?: number;  // Starting value for primary metric
+  target_value?: number;   // Target value for primary metric
   target_date?: string;
+  questionnaire_responses?: Record<string, string>;  // question_id -> selected answer value
 }
 
 // Re-export for convenience

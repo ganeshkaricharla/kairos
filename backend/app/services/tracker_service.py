@@ -19,6 +19,7 @@ async def create_tracker(data: TrackerCreate, user_id: str) -> dict:
         "target_value": data.target_value,
         "current_value": data.current_value,
         "reasoning": data.reasoning,
+        "is_primary": data.is_primary,
         "created_at": now(),
         "updated_at": now(),
     }

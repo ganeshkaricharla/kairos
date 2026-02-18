@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Trash2, TestTube, AlertCircle, CheckCircle } from "lucide-react";
+import { Save, Trash2, TestTube, AlertCircle, CheckCircle, Check } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -13,9 +14,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { settingsApi } from "@/api/settings";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function SettingsPage() {
   const qc = useQueryClient();
+  const { user } = useAuth();
+
+  // Coaching Personality
+  const { data: personalities } = useQuery({
+    queryKey: ["personalities"],
+    queryFn: settingsApi.getPersonalities,
+  });
+
+  const [selectedPersonality, setSelectedPersonality] = useState("");
+
+  useEffect(() => {
+    if (user?.coaching_style) {
+      setSelectedPersonality(user.coaching_style);
+    }
+  }, [user]);
+
+  const personalityMutation = useMutation({
+    mutationFn: settingsApi.updateCoachingStyle,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["user"] });
+      toast.success("Coaching personality updated!");
+    },
+  });
+
+  // AI Config
   const { data: config, isLoading } = useQuery({
     queryKey: ["ai-config"],
     queryFn: settingsApi.getAIConfig,
@@ -96,16 +123,66 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="mb-6">
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
+      <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Configure your AI provider and API key
+          Customize your coaching experience and AI provider
         </p>
       </div>
 
-      <Card className="p-6">
-        <div className="space-y-6">
+      {/* Coaching Personality */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Coaching Personality</CardTitle>
+          <CardDescription>
+            Choose how your AI coach communicates and motivates you
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {personalities?.map((p) => (
+              <div
+                key={p.id}
+                className={`flex items-start gap-3 border rounded-lg p-4 cursor-pointer transition-colors ${
+                  selectedPersonality === p.id
+                    ? "border-primary bg-accent"
+                    : "hover:bg-accent/50"
+                }`}
+                onClick={() => {
+                  setSelectedPersonality(p.id);
+                  personalityMutation.mutate(p.id);
+                }}
+              >
+                <div className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center mt-0.5">
+                  {selectedPersonality === p.id && (
+                    <Check className="w-3 h-3 text-primary" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">{p.name}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {p.description}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    <span className="font-medium">Tone:</span> {p.tone}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* AI Provider Configuration */}
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Provider</CardTitle>
+          <CardDescription>
+            Configure your own API key to use your preferred AI provider
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
           {/* Current Status */}
           {config?.using_global_key && (
             <div className="p-3 bg-muted rounded-lg">
@@ -135,10 +212,18 @@ export function SettingsPage() {
               <SelectContent>
                 <SelectItem value="openrouter">OpenRouter</SelectItem>
                 <SelectItem value="openai">OpenAI</SelectItem>
-                <SelectItem value="anthropic">Anthropic</SelectItem>
+                <SelectItem value="anthropic">Claude (Anthropic)</SelectItem>
                 <SelectItem value="custom">Custom</SelectItem>
               </SelectContent>
             </Select>
+            {provider && (
+              <p className="text-xs text-muted-foreground">
+                {provider === "openrouter" && "Access multiple AI models through one API. Get your key at openrouter.ai"}
+                {provider === "openai" && "Use GPT models directly. Get your key at platform.openai.com"}
+                {provider === "anthropic" && "Use Claude models directly. Get your key at console.anthropic.com"}
+                {provider === "custom" && "Use any OpenAI-compatible API endpoint"}
+              </p>
+            )}
           </div>
 
           {/* API Key */}
@@ -233,7 +318,7 @@ export function SettingsPage() {
               </Button>
             )}
           </div>
-        </div>
+        </CardContent>
       </Card>
     </div>
   );

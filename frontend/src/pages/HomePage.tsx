@@ -26,7 +26,7 @@ export function HomePage() {
         <Target className="w-12 h-12 text-muted-foreground" />
         <h2 className="text-lg font-medium">No goal yet</h2>
         <p className="text-muted-foreground text-sm">
-          Create your goal to get started with AI coaching
+          Create your goal and let Priya guide you to success
         </p>
         <Link to="/goals/new">
           <Button className="gap-2">

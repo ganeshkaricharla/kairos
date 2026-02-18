@@ -12,6 +12,7 @@ class User(BaseModel):
     picture: Optional[str] = None
     coaching_style: str = "balanced"  # strict, balanced, supportive, scientific
     memories: list[dict] = []  # [{text: str, type: str, created_at: datetime}]
+    is_admin: bool = False  # Admin role for accessing admin panel
 
     # AI Provider Configuration (optional - falls back to global .env config)
     ai_provider: Optional[str] = None  # "openrouter", "openai", "anthropic", "custom"

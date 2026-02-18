@@ -1,7 +1,14 @@
+export interface ToolCall {
+  name: string;
+  description: string;
+  arguments?: Record<string, unknown>;
+}
+
 export interface ChatMessage {
   role: "assistant" | "user";
   content: string;
   timestamp: string;
+  tool_calls?: ToolCall[];  // Tool calls made by AI (for UI display)
 }
 
 export interface ProposedChange {
@@ -33,6 +40,13 @@ export interface PerformanceSnapshot {
   tracker_trends: TrackerTrend[];
 }
 
+export interface SessionSummary {
+  key_points: string[];
+  habits_added: string[];
+  next_check_in: string | null;
+  action_items: string[];
+}
+
 export interface CoachingSession {
   id: string;
   goal_id: string;
@@ -42,6 +56,7 @@ export interface CoachingSession {
   performance_snapshot: PerformanceSnapshot | null;
   messages: ChatMessage[];
   proposed_changes: ProposedChange[];
+  summary: SessionSummary | null;
   created_at: string;
   resolved_at: string | null;
 }

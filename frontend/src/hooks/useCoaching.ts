@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { coachingApi } from "@/api/coaching";
 import type { CoachingSession } from "@/types/coaching";
 
@@ -22,6 +23,13 @@ export function useStartCoaching() {
     }) => coachingApi.start(goalId, trigger),
     onSuccess: (data, vars) => {
       qc.setQueryData(["coaching", vars.goalId], data);
+    },
+    onError: (err: any) => {
+      // Extract error message from backend
+      const errorMessage = err?.response?.data?.detail || err.message || "Failed to start session";
+      toast.error("Cannot start session", {
+        description: errorMessage,
+      });
     },
   });
 }
@@ -68,10 +76,13 @@ export function useSendMessage() {
       qc.setQueryData(["coaching", vars.goalId], data);
     },
 
-    onError: (_err, vars, context) => {
+    onError: (err, vars, context) => {
       if (context?.previous) {
         qc.setQueryData(["coaching", vars.goalId], context.previous);
       }
+      toast.error("Failed to send message", {
+        description: err.message || "Please try again later",
+      });
     },
   });
 }

@@ -14,6 +14,7 @@ class TrackerCreate(BaseModel):
     target_value: Optional[float] = None
     current_value: Optional[float] = None
     reasoning: str = ""
+    is_primary: bool = False  # The primary metric for tracking goal progress
 
 
 class TrackerUpdate(BaseModel):
@@ -36,5 +37,6 @@ class Tracker(BaseModel):
     target_value: Optional[float] = None
     current_value: Optional[float] = None
     reasoning: str = ""
+    is_primary: bool = False  # The primary metric for tracking goal progress
     created_at: datetime
     updated_at: datetime

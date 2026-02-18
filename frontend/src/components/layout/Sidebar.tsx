@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Target, TrendingUp, Plus } from "lucide-react";
+import { Home, Target, TrendingUp, Plus, CheckSquare, Activity } from "lucide-react";
 import { useActiveGoal } from "@/hooks/useGoals";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -10,6 +10,8 @@ export function Sidebar() {
 
   const navItems = [
     { to: "/", icon: Home, label: "Today" },
+    { to: "/habits", icon: CheckSquare, label: "Habits" },
+    { to: "/trackers", icon: Activity, label: "Trackers" },
     { to: "/progress", icon: TrendingUp, label: "Progress" },
   ];
 

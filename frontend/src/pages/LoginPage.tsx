@@ -14,7 +14,7 @@ export function LoginPage() {
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Kairos</h1>
           <p className="text-sm text-muted-foreground">
-            Adaptive AI Coaching
+            Your personal guide to achieving goals
           </p>
         </div>
         <div className="flex justify-center">

@@ -290,15 +290,33 @@ async def test_ai_config(provider: str, api_key: str, base_url: str | None = Non
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                f"{base_url}/models",
-                headers={"Authorization": f"Bearer {api_key}"}
-            )
+            # Anthropic uses different API format
+            if provider == "anthropic":
+                # Test with a minimal messages request
+                response = await client.post(
+                    f"{base_url}/messages",
+                    headers={
+                        "x-api-key": api_key,
+                        "anthropic-version": "2023-06-01",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "claude-3-5-sonnet-20241022",
+                        "max_tokens": 10,
+                        "messages": [{"role": "user", "content": "Hi"}]
+                    }
+                )
+            else:
+                # OpenAI, OpenRouter, and custom providers use /models endpoint
+                response = await client.get(
+                    f"{base_url}/models",
+                    headers={"Authorization": f"Bearer {api_key}"}
+                )
 
             if response.status_code == 200:
                 return {
                     "success": True,
-                    "message": "API key is valid and working",
+                    "message": f"✓ {provider.capitalize()} API key is valid and working",
                     "error": None,
                 }
             else:

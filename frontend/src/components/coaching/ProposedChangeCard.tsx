@@ -26,12 +26,13 @@ export function ProposedChangeCard({
   onReject,
 }: ProposedChangeCardProps) {
   const decided = change.accepted === true || change.accepted === false;
+  const details = change.details as Record<string, any>;
+  const title = details.title || details.name || details.habit_name || change.type;
 
   return (
     <Card
-      className={`${
-        decided ? "opacity-60" : ""
-      }`}
+      className={`${decided ? "opacity-60" : ""
+        }`}
     >
       <CardContent className="pt-4 pb-3">
         <div className="flex items-start justify-between gap-2">
@@ -39,7 +40,13 @@ export function ProposedChangeCard({
             <Badge variant="outline" className="mb-2">
               {typeLabels[change.type] ?? change.type}
             </Badge>
-            <p className="text-sm">{change.description}</p>
+            <h4 className="font-medium text-sm mb-1">{title}</h4>
+            {change.description && (
+              <p className="text-xs text-muted-foreground">{change.description}</p>
+            )}
+            {details.reasoning && !change.description && (
+              <p className="text-xs text-muted-foreground">{details.reasoning}</p>
+            )}
           </div>
           {decided ? (
             <Badge variant={change.accepted ? "default" : "secondary"}>

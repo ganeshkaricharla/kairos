@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { LogOut, MessageCircle, Settings } from "lucide-react";
+import { LogOut, MessageCircle, Settings, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ function CoachingBadge({ goalId }: { goalId: string }) {
     <Link to={`/goals/${goalId}/coach`}>
       <Badge variant="default" className="gap-1 cursor-pointer">
         <MessageCircle className="w-3 h-3" />
-        Coach
+        Priya
       </Badge>
     </Link>
   );
@@ -35,6 +35,13 @@ export function Header() {
       <div className="flex items-center gap-3">
         {goal && <CoachingBadge goalId={goal.id} />}
         <ModelSelector />
+        {user?.is_admin && (
+          <Link to="/admin">
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Shield className="w-4 h-4" />
+            </Button>
+          </Link>
+        )}
         <Link to="/settings">
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Settings className="w-4 h-4" />
